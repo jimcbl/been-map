@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore, useState, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useSyncExternalStore, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import countriesTopology from 'world-atlas/countries-50m.json';
 import Modal from 'react-modal';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
@@ -35,6 +35,7 @@ const HOVERED_VISITED_FILL = '#d9831f';
 const HOVERED_DEFAULT_FILL = '#c7ced6';
 const SESSION_STORAGE_KEY = 'travel-map:user';
 const COUNTRY_STORAGE_PREFIX = 'travel-map:countries:';
+const EDITOR_STATUS = 'visited';
 const EMPTY_SAVED_STATUSES: Record<string, TravelStatus> = {};
 let cachedStatusesKey: string | null = null;
 let cachedStatusesRaw: string | null = null;
@@ -44,7 +45,6 @@ const MODAL_STYLES = {
     backgroundColor: 'rgba(28, 25, 23, 0.45)',
     backdropFilter: 'blur(6px)',
     zIndex: 50,
-    padding: '1rem',
   },
   content: {
     position: 'relative',
@@ -68,8 +68,6 @@ export default function WorldTravelMap() {
   const [loginName, setLoginName] = useState('');
   const [selectedContinentTitle, setSelectedContinentTitle] = useState(continents[0]?.title ?? '');
   const [countryInput, setCountryInput] = useState('');
-  const [selectedCountryNames, setSelectedCountryNames] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<TravelStatus>('visited');
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const userName = useStoredUserName();
   const savedStatuses = useStoredStatuses(userName);
@@ -133,68 +131,35 @@ export default function WorldTravelMap() {
           onClose={() => {
             setIsEditorOpen(false);
             setCountryInput('');
-            setSelectedCountryNames([]);
             setFormMessage(null);
           }}
           onCountryInputChange={setCountryInput}
-          onRemoveSavedCountry={(countryName) => {
+          onToggleCountry={(countryName, isChecked) => {
             if (!userName || !selectedContinent) {
               return;
             }
 
             const nextStatuses = { ...savedStatuses };
-            delete nextStatuses[getCountryStorageKey(selectedContinent.title, countryName)];
-            window.localStorage.setItem(`${COUNTRY_STORAGE_PREFIX}${userName}`, JSON.stringify(nextStatuses));
-            emitTravelMapStorageChange();
-            setFormMessage(`${countryName} removed.`);
-          }}
-          onSubmit={(event) => {
-            event.preventDefault();
 
-            if (!userName || !selectedContinent) {
-              setFormMessage('Log in first to save countries.');
-              return;
-            }
-
-            if (selectedCountryNames.length === 0) {
-              setFormMessage('Select at least one country from the list.');
-              return;
-            }
-
-            const nextStatuses = { ...savedStatuses };
-
-            for (const countryName of selectedCountryNames) {
-              nextStatuses[getCountryStorageKey(selectedContinent.title, countryName)] = selectedStatus;
+            if (isChecked) {
+              nextStatuses[getCountryStorageKey(selectedContinent.title, countryName)] = EDITOR_STATUS;
+              setFormMessage(`${countryName} saved as visited.`);
+            } else {
+              delete nextStatuses[getCountryStorageKey(selectedContinent.title, countryName)];
+              setFormMessage(`${countryName} removed.`);
             }
 
             window.localStorage.setItem(`${COUNTRY_STORAGE_PREFIX}${userName}`, JSON.stringify(nextStatuses));
             emitTravelMapStorageChange();
-            setCountryInput('');
-            setSelectedCountryNames([]);
-            setFormMessage(`${selectedCountryNames.length} countries saved as ${selectedStatus}.`);
           }}
-          onStatusChange={setSelectedStatus}
           onContinentChange={(value) => {
             setSelectedContinentTitle(value);
             setCountryInput('');
-            setSelectedCountryNames([]);
             setFormMessage(null);
-          }}
-          onToggleCountry={(countryName) => {
-            setSelectedCountryNames((currentSelection) =>
-              currentSelection.includes(countryName)
-                ? currentSelection.filter((name) => name !== countryName)
-                : [...currentSelection, countryName],
-            );
-          }}
-          onUnselectCountry={(countryName) => {
-            setSelectedCountryNames((currentSelection) => currentSelection.filter((name) => name !== countryName));
           }}
           savedStatuses={savedStatuses}
           selectedContinent={selectedContinent}
           selectedContinentTitle={selectedContinentTitle}
-          selectedCountryNames={selectedCountryNames}
-          selectedStatus={selectedStatus}
         />
 
         <div className="flex flex-col gap-8">
@@ -302,16 +267,10 @@ function CountryEditorModal({
   onClose,
   onCountryInputChange,
   onContinentChange,
-  onRemoveSavedCountry,
-  onStatusChange,
-  onSubmit,
   onToggleCountry,
-  onUnselectCountry,
   savedStatuses,
   selectedContinent,
   selectedContinentTitle,
-  selectedCountryNames,
-  selectedStatus,
 }: {
   countryInput: string;
   formMessage: string | null;
@@ -320,16 +279,10 @@ function CountryEditorModal({
   onClose: () => void;
   onCountryInputChange: (value: string) => void;
   onContinentChange: (value: string) => void;
-  onRemoveSavedCountry: (countryName: string) => void;
-  onStatusChange: (value: TravelStatus) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onToggleCountry: (countryName: string) => void;
-  onUnselectCountry: (countryName: string) => void;
+  onToggleCountry: (countryName: string, isChecked: boolean) => void;
   savedStatuses: Record<string, TravelStatus>;
   selectedContinent: ContinentData | undefined;
   selectedContinentTitle: string;
-  selectedCountryNames: string[];
-  selectedStatus: TravelStatus;
 }) {
   if (!isOpen) {
     return null;
@@ -340,10 +293,6 @@ function CountryEditorModal({
       country.name.toLowerCase().includes(countryInput.trim().toLowerCase()),
     ) ?? [];
   const currentContinentTitle = selectedContinent?.title ?? selectedContinentTitle;
-  const savedCountries =
-    selectedContinent?.countries.filter(
-      (country) => savedStatuses[getCountryStorageKey(currentContinentTitle, country.name)] !== undefined,
-    ) ?? [];
 
   return (
     <Modal
@@ -359,7 +308,7 @@ function CountryEditorModal({
           <div>
             <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl">Manage countries</h2>
             <p className="mt-1 text-sm leading-6 text-stone-600">
-              Select multiple countries, save them in one batch, or remove previously saved ones.
+              Checked countries are saved immediately for the selected status. Unchecking removes them right away.
             </p>
           </div>
           <button
@@ -373,7 +322,7 @@ function CountryEditorModal({
 
         <div className="overflow-y-auto px-4 py-4 md:px-6 md:py-5">
           <div className="flex flex-col gap-5">
-            <form className="grid gap-4 md:grid-cols-[1fr_1fr_180px_auto]" onSubmit={onSubmit}>
+            <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
               <label className="flex flex-col gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Continent</span>
                 <select
@@ -402,37 +351,15 @@ function CountryEditorModal({
                   disabled={!isLoggedIn}
                 />
               </label>
+            </div>
 
-              <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Status</span>
-                <select
-                  value={selectedStatus}
-                  onChange={(event) => onStatusChange(event.target.value as TravelStatus)}
-                  className="rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-amber-500"
-                  disabled={!isLoggedIn}
-                >
-                  <option value="visited">Visited</option>
-                  <option value="planned">Planned</option>
-                </select>
-              </label>
-
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={!isLoggedIn}
-                  className="w-full rounded-2xl bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50 transition hover:bg-stone-800 disabled:bg-stone-300"
-                >
-                  Save countries
-                </button>
-              </div>
-            </form>
-
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px_280px]">
+            <div className="grid gap-4">
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Choose multiple</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Countries</p>
                 <div className="grid max-h-72 gap-2 overflow-y-auto pr-1">
                   {filteredCountries.map((country) => {
-                    const checked = selectedCountryNames.includes(country.name);
+                    const checked =
+                      savedStatuses[getCountryStorageKey(currentContinentTitle, country.name)] === EDITOR_STATUS;
 
                     return (
                       <label
@@ -442,7 +369,7 @@ function CountryEditorModal({
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => onToggleCountry(country.name)}
+                          onChange={(event) => onToggleCountry(country.name, event.target.checked)}
                           disabled={!isLoggedIn}
                           className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
                         />
@@ -452,60 +379,6 @@ function CountryEditorModal({
                   })}
                   {filteredCountries.length === 0 ? (
                     <p className="px-2 py-4 text-sm text-stone-400">No countries match that filter.</p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Selected ({selectedCountryNames.length})
-                </p>
-                <div className="flex max-h-72 flex-wrap gap-2 overflow-y-auto">
-                  {selectedCountryNames.map((countryName) => (
-                    <button
-                      key={countryName}
-                      type="button"
-                      onClick={() => onUnselectCountry(countryName)}
-                      className="rounded-full bg-amber-100 px-3 py-1.5 text-sm text-amber-900 transition hover:bg-amber-200"
-                    >
-                      {countryName}
-                    </button>
-                  ))}
-                  {selectedCountryNames.length === 0 ? (
-                    <p className="text-sm text-stone-400">No countries selected yet.</p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Saved ({savedCountries.length})
-                </p>
-                <div className="grid max-h-72 gap-2 overflow-y-auto">
-                  {savedCountries.map((country) => {
-                    const savedStatus = savedStatuses[getCountryStorageKey(currentContinentTitle, country.name)];
-
-                    return (
-                      <div
-                        key={`saved-${selectedContinentTitle}-${country.code}`}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700"
-                      >
-                        <div>
-                          <p className="font-medium text-stone-900">{country.name}</p>
-                          <p className="text-xs uppercase tracking-[0.16em] text-stone-400">{savedStatus}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => onRemoveSavedCountry(country.name)}
-                          className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:border-rose-400 hover:text-rose-900"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {savedCountries.length === 0 ? (
-                    <p className="text-sm text-stone-400">No saved countries in this continent yet.</p>
                   ) : null}
                 </div>
               </div>

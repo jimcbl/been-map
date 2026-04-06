@@ -39,3 +39,26 @@ code {
 button {
   cursor: pointer;
 }
+
+.ReactModalPortal {
+  position: relative;
+  z-index: 50;
+}
+
+.ReactModal__Overlay {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.ReactModal__Overlay--after-open {
+  padding-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .ReactModal__Overlay--after-open {
+    padding-top: 3.5rem;
+  }
+}
