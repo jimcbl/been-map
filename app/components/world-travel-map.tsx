@@ -94,7 +94,7 @@ export default function WorldTravelMap() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff9ea,_#f4efe4_40%,_#ece7de_100%)] px-3 py-4 text-stone-900 sm:px-6 sm:py-8 lg:px-12">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(78,58,21,0.12)] backdrop-blur sm:gap-8 sm:p-6 md:rounded-[32px] md:p-8">
+      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(78,58,21,0.12)] backdrop-blur sm:gap-8 sm:p-6 md:rounded-[32px] md:p-8">
         <Header
           isEditorOpen={isEditorOpen}
           loginName={loginName}
@@ -238,8 +238,7 @@ function Header({
             Jim&apos;s travel maps
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
-            Save your own visited countries per local profile, then keep them on this device with
-            <code className="mx-1 rounded bg-stone-100 px-1.5 py-0.5 text-[0.9em]">localStorage</code>.
+            Save your own visited countries. Made by Jim and OpenAI Codex with ❤️.
           </p>
           <button
             type="button"
