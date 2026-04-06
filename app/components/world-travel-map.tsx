@@ -97,6 +97,7 @@ export default function WorldTravelMap() {
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(78,58,21,0.12)] backdrop-blur sm:gap-8 sm:p-6 md:rounded-[32px] md:p-8">
         <Header
           isEditorOpen={isEditorOpen}
+          isLoggedIn={Boolean(userName)}
           loginName={loginName}
           onEditorOpen={() => {
             setIsEditorOpen(true);
@@ -207,6 +208,8 @@ export default function WorldTravelMap() {
             />
           ))}
         </div>
+
+        <Footer />
       </section>
     </main>
   );
@@ -214,6 +217,7 @@ export default function WorldTravelMap() {
 
 function Header({
   isEditorOpen,
+  isLoggedIn,
   loginName,
   onEditorOpen,
   onLogin,
@@ -222,6 +226,7 @@ function Header({
   userName,
 }: {
   isEditorOpen: boolean;
+  isLoggedIn: boolean;
   loginName: string;
   onEditorOpen: () => void;
   onLogin: () => void;
@@ -235,15 +240,16 @@ function Header({
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
-            Jim&apos;s travel maps
+            Your travel maps
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
-            Save your own visited countries. Made by Jim and OpenAI Codex with ❤️.
+            Save your own visited countries. {isLoggedIn ? '' : 'Please log in to manage your countries.'}
           </p>
           <button
             type="button"
             onClick={onEditorOpen}
-            className="mt-4 w-full rounded-full bg-stone-950 px-5 py-2.5 text-sm font-medium text-stone-50 transition hover:bg-stone-800 sm:w-auto"
+            disabled={!isLoggedIn}
+            className="mt-4 w-full rounded-full bg-stone-950 px-5 py-2.5 text-sm font-medium text-stone-50 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 sm:w-auto"
           >
             {isEditorOpen ? 'Editor open' : 'Manage countries'}
           </button>
@@ -268,6 +274,7 @@ function Header({
             <div className="flex flex-col gap-3 sm:flex-row">
               <input
                 value={loginName}
+                type="text"
                 onChange={(event) => onLoginNameChange(event.target.value)}
                 placeholder="Your name"
                 className="min-w-0 flex-1 rounded-full border border-stone-300 bg-white px-4 py-2 text-sm text-stone-950 outline-none transition focus:border-amber-500"
@@ -555,6 +562,16 @@ function ContinentSection({
         />
       </div>
     </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-stone-200 pt-6">
+      <div className="flex flex-col items-start justify-between gap-3 rounded-[24px] bg-stone-950 px-4 py-5 text-stone-50 sm:px-5 md:flex-row md:items-center md:px-6">
+        <p className="text-sm leading-6 text-stone-300">Made by Jim and OpenAI Codex with ❤️</p>
+      </div>
+    </footer>
   );
 }
 
