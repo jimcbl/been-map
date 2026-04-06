@@ -1,5 +1,5 @@
-import EuropeTravelMap from "@/app/components/europe-travel-map";
+import WorldTravelMap from '@/app/components/world-travel-map';
 
 export default function Home() {
-  return <EuropeTravelMap />;
+  return <WorldTravelMap />;
 }
