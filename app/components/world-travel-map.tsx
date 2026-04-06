@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  useEffect,
-  useSyncExternalStore,
-  useState,
-  type FormEvent,
-  type MouseEvent as ReactMouseEvent,
-} from 'react';
+import { useEffect, useSyncExternalStore, useState, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import countriesTopology from 'world-atlas/countries-50m.json';
 import Modal from 'react-modal';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
@@ -50,7 +44,7 @@ const MODAL_STYLES = {
     backgroundColor: 'rgba(28, 25, 23, 0.45)',
     backdropFilter: 'blur(6px)',
     zIndex: 50,
-    padding: '1.5rem 1rem',
+    padding: '0.75rem',
   },
   content: {
     position: 'relative',
@@ -60,7 +54,7 @@ const MODAL_STYLES = {
     padding: '0',
     maxWidth: '80rem',
     width: '100%',
-    maxHeight: '92vh',
+    maxHeight: 'calc(100vh - 1.5rem)',
     overflow: 'hidden',
     margin: '0 auto',
     background: '#ffffff',
@@ -90,7 +84,7 @@ export default function WorldTravelMap() {
     countries: continent.countries.map((country) => ({
       ...country,
       status: hasSavedCountries
-        ? savedStatuses[getCountryStorageKey(continent.title, country.name)] ?? 'planned'
+        ? (savedStatuses[getCountryStorageKey(continent.title, country.name)] ?? 'planned')
         : 'planned',
     })),
   }));
@@ -99,8 +93,8 @@ export default function WorldTravelMap() {
     effectiveContinents.find((continent) => continent.title === selectedContinentTitle) ?? effectiveContinents[0];
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff9ea,_#f4efe4_40%,_#ece7de_100%)] px-5 py-8 text-stone-900 sm:px-8 lg:px-12">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_24px_80px_rgba(78,58,21,0.12)] backdrop-blur md:p-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff9ea,_#f4efe4_40%,_#ece7de_100%)] px-3 py-4 text-stone-900 sm:px-6 sm:py-8 lg:px-12">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-[28px] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(78,58,21,0.12)] backdrop-blur sm:gap-8 sm:p-6 md:rounded-[32px] md:p-8">
         <Header
           isEditorOpen={isEditorOpen}
           loginName={loginName}
@@ -193,9 +187,7 @@ export default function WorldTravelMap() {
             );
           }}
           onUnselectCountry={(countryName) => {
-            setSelectedCountryNames((currentSelection) =>
-              currentSelection.filter((name) => name !== countryName),
-            );
+            setSelectedCountryNames((currentSelection) => currentSelection.filter((name) => name !== countryName));
           }}
           savedStatuses={savedStatuses}
           selectedContinent={selectedContinent}
@@ -242,7 +234,9 @@ function Header({
       <p className="text-sm font-semibold uppercase tracking-[0.32em] text-amber-700">Been There Done That</p>
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-stone-950 md:text-5xl">Jim&apos;s travel maps</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
+            Jim&apos;s travel maps
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
             Save your own visited countries per local profile, then keep them on this device with
             <code className="mx-1 rounded bg-stone-100 px-1.5 py-0.5 text-[0.9em]">localStorage</code>.
@@ -250,15 +244,15 @@ function Header({
           <button
             type="button"
             onClick={onEditorOpen}
-            className="mt-4 rounded-full bg-stone-950 px-5 py-2.5 text-sm font-medium text-stone-50 transition hover:bg-stone-800"
+            className="mt-4 w-full rounded-full bg-stone-950 px-5 py-2.5 text-sm font-medium text-stone-50 transition hover:bg-stone-800 sm:w-auto"
           >
             {isEditorOpen ? 'Editor open' : 'Manage countries'}
           </button>
         </div>
-        <div className="flex min-w-[280px] flex-col gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:w-auto md:min-w-[280px]">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Local Login</p>
           {userName ? (
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-stone-500">Signed in as</p>
                 <p className="font-semibold text-stone-950">{userName}</p>
@@ -266,7 +260,7 @@ function Header({
               <button
                 type="button"
                 onClick={onLogout}
-                className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-950 hover:text-stone-950"
+                className="w-full rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-950 hover:text-stone-950 sm:w-auto"
               >
                 Log out
               </button>
@@ -354,10 +348,10 @@ function CountryEditorModal({
       shouldCloseOnEsc
       style={MODAL_STYLES}
     >
-      <section className="flex max-h-[92vh] w-full flex-col overflow-hidden rounded-[28px] bg-white">
-        <div className="flex items-start justify-between gap-4 border-b border-stone-200 px-5 py-5 md:px-6">
+      <section className="flex max-h-[calc(100vh-1.5rem)] w-full flex-col overflow-hidden rounded-[24px] bg-white md:max-h-[92vh] md:rounded-[28px]">
+        <div className="flex flex-col gap-4 border-b border-stone-200 px-4 py-4 sm:flex-row sm:items-start sm:justify-between md:px-6 md:py-5">
           <div>
-            <h2 className="text-2xl font-semibold text-stone-950">Manage countries</h2>
+            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl">Manage countries</h2>
             <p className="mt-1 text-sm leading-6 text-stone-600">
               Select multiple countries, save them in one batch, or remove previously saved ones.
             </p>
@@ -365,13 +359,13 @@ function CountryEditorModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-950 hover:text-stone-950"
+            className="w-full rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-950 hover:text-stone-950 sm:w-auto"
           >
             Close
           </button>
         </div>
 
-        <div className="overflow-y-auto px-5 py-5 md:px-6">
+        <div className="overflow-y-auto px-4 py-4 md:px-6 md:py-5">
           <div className="flex flex-col gap-5">
             <form className="grid gap-4 md:grid-cols-[1fr_1fr_180px_auto]" onSubmit={onSubmit}>
               <label className="flex flex-col gap-2">
@@ -391,7 +385,9 @@ function CountryEditorModal({
               </label>
 
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Filter countries</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                  Filter countries
+                </span>
                 <input
                   value={countryInput}
                   onChange={(event) => onCountryInputChange(event.target.value)}
@@ -534,15 +530,15 @@ function ContinentSection({
   const paletteLookup = getVisitedFillLookup(stats.visitedCountries);
 
   return (
-    <section className="rounded-[28px] bg-[#fbf7ef] p-4 shadow-inner shadow-amber-100/50 md:p-6">
-      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <section className="rounded-[28px] bg-[#fbf7ef] p-2 shadow-inner shadow-amber-100/50 md:p-6">
+      <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-stone-900">{continent.title} overview</h2>
           <p className="text-sm text-stone-500">
             Warm colors are visited countries. Grey countries are still on the list.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-stone-500">
+        <div className="grid grid-cols-2 gap-3 text-xs font-medium text-stone-500 sm:flex sm:flex-wrap sm:items-center">
           <LegendSwatch color="#f2b347" label="Visited" />
           <LegendSwatch color={DEFAULT_COUNTRY_FILL} label="Not yet" />
           <StatCard label="Visited" value={`${stats.visitedCountries.length}/${continent.countries.length}`} />
@@ -550,7 +546,7 @@ function ContinentSection({
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,_#fffdf7_0%,_#f6f0e3_100%)] p-3">
+      <div className="relative overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,_#fffdf7_0%,_#f6f0e3_100%)] md:p-3 sm:p-0">
         <MapTooltip hoveredCountry={hoveredCountry?.continent === continent.title ? hoveredCountry : null} />
         <ContinentMap
           continent={continent}
@@ -672,7 +668,7 @@ function getHoveredCountry(event: ReactMouseEvent<SVGPathElement>, name: string,
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-[110px] rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
+    <div className="min-w-0 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 sm:min-w-[110px]">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-stone-950">{value}</p>
     </div>
