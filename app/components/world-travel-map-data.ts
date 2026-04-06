@@ -16,6 +16,10 @@ export type ContinentData = {
   };
 };
 
+function sortCountriesAlphabetically(countries: Country[]) {
+  return [...countries].sort((left, right) => left.name.localeCompare(right.name));
+}
+
 const europeCountries: Country[] = [
   { code: 'AM', name: 'Armenia', status: 'planned' },
   { code: 'AZ', name: 'Azerbaijan', status: 'planned' },
@@ -223,7 +227,7 @@ export const visitedPalette = ['#f2b347', '#ef9b38', '#f7c766', '#e8832f'] as co
 export const continents: ContinentData[] = [
   {
     title: 'Europe',
-    countries: europeCountries,
+    countries: sortCountriesAlphabetically(europeCountries),
     mapCountryNames: europeCountryNames,
     projection: {
       center: [8, 59],
@@ -232,7 +236,7 @@ export const continents: ContinentData[] = [
   },
   {
     title: 'Asia',
-    countries: asiaCountries,
+    countries: sortCountriesAlphabetically(asiaCountries),
     mapCountryNames: asiaCountryNames,
     projection: {
       center: [92, 35],

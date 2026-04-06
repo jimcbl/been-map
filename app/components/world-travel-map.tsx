@@ -44,7 +44,7 @@ const MODAL_STYLES = {
     backgroundColor: 'rgba(28, 25, 23, 0.45)',
     backdropFilter: 'blur(6px)',
     zIndex: 50,
-    padding: '0.75rem',
+    padding: '1rem',
   },
   content: {
     position: 'relative',
