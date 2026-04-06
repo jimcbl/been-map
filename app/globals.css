@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #efe8dd;
@@ -34,4 +34,8 @@ a {
 
 code {
   font-family: var(--font-space-mono), monospace;
+}
+
+button {
+  cursor: pointer;
 }
